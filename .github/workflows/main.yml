@@ -24,4 +24,4 @@ jobs:
     - name: Run Telegram Bot
       env:
         BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
-      run: python telegram_soundalike.py
+      run: python soundalike.py
