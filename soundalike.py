@@ -8,11 +8,6 @@ BOT_TOKEN = os.environ.get('BOT_TOKEN')
 
 # Don't change above
 
-from Levenshtein import distance as levenshtein_distance
-import random
-import nltk
-from nltk.corpus import cmudict
-
 def phonetic_representation(word):
     """Return the phonetic representation of a word using the CMU Pronouncing Dictionary."""
     try:
