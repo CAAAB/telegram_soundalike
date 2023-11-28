@@ -1,6 +1,5 @@
 from Levenshtein import distance as levenshtein_distance
 import random
-import pandas as pd
 import os
 import nltk
 from nltk.corpus import cmudict
