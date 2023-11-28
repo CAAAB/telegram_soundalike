@@ -1,0 +1,27 @@
+name: Telegram Sound Bot Activation
+
+on:
+  schedule:
+  - cron: '*/10 * * * *'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+      
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.x'
+        
+    - name: Install dependencies
+      run: |
+        pip install -r requirements.txt
+
+    - name: Run Telegram Bot
+      env:
+        BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
+      run: python telegram_soundalike.py
