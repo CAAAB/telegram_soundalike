@@ -10,7 +10,6 @@ BOT_TOKEN = os.environ.get('BOT_TOKEN')
 
 from Levenshtein import distance as levenshtein_distance
 import random
-import pandas as pd
 import nltk
 from nltk.corpus import cmudict
 
