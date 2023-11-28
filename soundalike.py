@@ -6,8 +6,6 @@ import nltk
 from nltk.corpus import cmudict
 
 BOT_TOKEN = os.environ.get('BOT_TOKEN')
-nltk.download('cmudict')
-cmu_dict = cmudict.dict()
 
 def phonetic_representation(word):
     """Return the phonetic representation of a word using the CMU Pronouncing Dictionary."""
@@ -56,6 +54,9 @@ import telebot
 
 # Initialize the bot with your token
 bot = telebot.TeleBot(BOT_TOKEN)
+
+nltk.download('cmudict')
+cmu_dict = cmudict.dict()
 
 # Handler for any text message
 @bot.message_handler(func=lambda message: True)
