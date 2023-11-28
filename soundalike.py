@@ -6,12 +6,20 @@ from nltk.corpus import cmudict
 
 BOT_TOKEN = os.environ.get('BOT_TOKEN')
 
+# Don't change above
+
+from Levenshtein import distance as levenshtein_distance
+import random
+import pandas as pd
+import nltk
+from nltk.corpus import cmudict
+
 def phonetic_representation(word):
     """Return the phonetic representation of a word using the CMU Pronouncing Dictionary."""
     try:
         return cmu_dict[word.lower()][0]  # Using the first pronunciation
     except KeyError:
-        return None  # Word not found in the dictionary
+        return word  # Word not found in the dictionary
     
 def phonetic_similarity(phonetics1, phonetics2):
     """Calculate a similarity measure between two phonetic representations considering the sequence order."""
@@ -29,11 +37,16 @@ def find_other_words(original_word, threshold = .75, max_matches = 5):
             matches.append(word)
     return matches
 
+def clean_word(word):
+    return re.sub(r'[^\w\s]', '', word)
+
 def generate_random_sentence(sentence, threshold=.75):
-    alternatives = [find_other_words(word, threshold) for word in sentence.split()]
+    words = sentence.split()
+    cleaned_words = [clean_word(word) for word in words]
+    alternatives = [find_other_words(word, threshold) for word in cleaned_words]
     
-    # Ensure each list of alternatives includes the original word
-    for i, word in enumerate(sentence.split()):
+    # Ensure each list of alternatives includes the cleaned word
+    for i, word in enumerate(cleaned_words):
         if word not in alternatives[i]:
             alternatives[i].append(word)
 
@@ -49,22 +62,53 @@ def generate_random_sentence(sentence, threshold=.75):
     all_combinations = list(generate_combinations([], 0))
     return random.choice(all_combinations)
 
+# Bot part:
+import re
 import telebot
+import string
 
-# Initialize the bot with your token
 bot = telebot.TeleBot(BOT_TOKEN)
 
-nltk.download('cmudict')
-cmu_dict = cmudict.dict()
+# Function to remove inter-word punctuation
+def remove_inter_word_punctuation(text):
+    return re.sub(r'(?<=\s)[{0}]|[{0}](?=\s)'.format(re.escape(string.punctuation)), '', text)
+
+# Function to find inter-word punctuation in a sentence
+def find_inter_word_punctuation(text):
+    punctuation_positions = [(i, char) for i, char in enumerate(text.split()) if char in string.punctuation]
+    return punctuation_positions
+
+# Function to reinsert punctuation into a sentence at word level
+def reinsert_punctuation_at_word_level(sentence, punctuation_positions):
+    words = sentence.split()
+    for pos, punct in punctuation_positions:
+        if pos < len(words):
+            words.insert(pos, punct)
+    return ' '.join(words)
+
+# Function to match the capitalization of the original text
+def match_capitalization(source, target):
+    result = []
+    for s_word, t_word in zip(source.split(), target.split()):
+        if s_word.istitle():
+            result.append(t_word.capitalize())
+        else:
+            result.append(t_word.lower())
+    return ' '.join(result)
 
 # Handler for any text message
 @bot.message_handler(func=lambda message: True)
 def generate_alternative(message):
     try:
-        response = generate_random_sentence(message.text.lower(), 0.65)
-        bot.reply_to(message, response)
+        original_text = message.text
+        punctuation_positions = find_inter_word_punctuation(original_text)
+        cleaned_text = remove_inter_word_punctuation(original_text)
+        generated_sentence = generate_random_sentence(cleaned_text.lower(), 0.65)
+        final_response = match_capitalization(original_text, generated_sentence)
+        final_response_with_punct = reinsert_punctuation_at_word_level(final_response, punctuation_positions)
+        bot.send_message(message.chat.id, final_response_with_punct)
     except Exception as e:
-        bot.reply_to(message, "Error: " + str(e))
+        bot.send_message(message.chat.id, "Error: " + str(e))
 
 # Polling the bot to keep it running
 bot.polling()
