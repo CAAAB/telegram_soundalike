@@ -4,6 +4,9 @@ import os
 import nltk
 from nltk.corpus import cmudict
 
+nltk.download('cmudict')
+cmu_dict = cmudict.dict()
+
 BOT_TOKEN = os.environ.get('BOT_TOKEN')
 
 # Don't change above
